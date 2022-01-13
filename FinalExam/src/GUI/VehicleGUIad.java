@@ -2,7 +2,13 @@ package GUI;
 
 import javax.swing.JFrame;
 import java.awt.GridLayout;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.Vector;
+
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.Color;
 import java.awt.Font;
@@ -14,7 +20,12 @@ import javax.swing.JButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
+
+import DB.ConnectDB;
+
 import java.awt.FlowLayout;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 public class VehicleGUIad {
 	JFrame frame = new JFrame("Vehical management for Admin");
@@ -24,12 +35,42 @@ public class VehicleGUIad {
 	private JTextField tfChassisNumber;
 	private JTextField tfEngineNumber;
 	private JTextField tfBrand;
-	
+	JTable table;
+	ResultSet rs;
+	ResultSetMetaData rstmeta;
+	Vector vData=null, vTitle=null; 
 	public VehicleGUIad() {
-		frame.getContentPane().setLayout(new GridLayout(9,1));
-		
+		frame.getContentPane().setLayout(new GridLayout(2,1));
+		JPanel mainPanel = new JPanel();
+		mainPanel.setLayout(new GridLayout(8,1));
+		frame.getContentPane().add(mainPanel);
+		ConnectDB s = new ConnectDB();
+	    rs = s.SelectDB("Select * from Vehicle");
+		try {
+			rstmeta = rs.getMetaData();
+			int num_column = rstmeta.getColumnCount();
+			
+			 vTitle = new Vector(num_column);
+			
+			 for (int i=1; i<=num_column;i++){
+			 vTitle.add(rstmeta.getColumnLabel(i));
+			 }
+			 
+			 vData = new Vector(10,10);
+			
+			 while (rs.next()){
+			 Vector row = new Vector(num_column);
+			 for (int i=1; i<=num_column;i++)				
+				 row.add(rs.getString(i));				
+				 vData.add(row);
+			 }			 
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		JPanel panelTitle = new JPanel();
-		frame.getContentPane().add(panelTitle);
+		mainPanel.add(panelTitle);
 		
 		JLabel lblTitle = new JLabel("Vehicle Management");
 		panelTitle.add(lblTitle);
@@ -37,7 +78,7 @@ public class VehicleGUIad {
 		lblTitle.setForeground(Color.RED);
 		
 		JPanel panelName = new JPanel();
-		frame.getContentPane().add(panelName);
+		mainPanel.add(panelName);
 		
 		JLabel lbOwnerName = new JLabel("Owner Name");
 		panelName.add(lbOwnerName);
@@ -47,7 +88,7 @@ public class VehicleGUIad {
 		tfOwnerName.setColumns(50);
 		
 		JPanel panelIdentityCard = new JPanel();
-		frame.getContentPane().add(panelIdentityCard);
+		mainPanel.add(panelIdentityCard);
 		
 		JLabel lbIdentityCard = new JLabel("Identity Card");
 		panelIdentityCard.add(lbIdentityCard);
@@ -57,7 +98,7 @@ public class VehicleGUIad {
 		tfIdentityCard.setColumns(50);
 		
 		JPanel panelVehicleTypeAndLicensePlate = new JPanel();
-		frame.getContentPane().add(panelVehicleTypeAndLicensePlate);
+		mainPanel.add(panelVehicleTypeAndLicensePlate);
 		
 		JLabel lbVehicleType = new JLabel("Vehicle Type");
 		panelVehicleTypeAndLicensePlate.add(lbVehicleType);
@@ -88,7 +129,7 @@ public class VehicleGUIad {
 		tfBrand.setColumns(13);
 		
 		JPanel panelChassisNumber = new JPanel();
-		frame.getContentPane().add(panelChassisNumber);
+		mainPanel.add(panelChassisNumber);
 		
 		JLabel lbChassisNumber = new JLabel("Chassis Number");
 		panelChassisNumber.add(lbChassisNumber);
@@ -98,7 +139,7 @@ public class VehicleGUIad {
 		tfChassisNumber.setColumns(49);
 		
 		JPanel panelEngineNumber = new JPanel();
-		frame.getContentPane().add(panelEngineNumber);
+		mainPanel.add(panelEngineNumber);
 		
 		JLabel lbEngineNumber = new JLabel("Engine Number");
 		panelEngineNumber.add(lbEngineNumber);
@@ -108,58 +149,62 @@ public class VehicleGUIad {
 		tfEngineNumber.setColumns(50);
 		
 		JPanel panelButton = new JPanel();
-		frame.getContentPane().add(panelButton);
+		mainPanel.add(panelButton);
 		
-		JButton btnNewButton_3 = new JButton("New button");
-		panelButton.add(btnNewButton_3);
+		JButton btnInsert = new JButton("Insert");
+		btnInsert.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				ConnectDB connectDB = new ConnectDB();
+				int record = connectDB.ExcuteUpdate("Insert into Vehicle values('"+tfOwnerName.getText()+"','"+tfIdentityCard.getText()+"','"+comboBox.getSelectedItem().toString()+"','"+tfLicensePlate.getText()+"','"+tfBrand.getText()+"','"+tfChassisNumber.getText()+"','"+tfEngineNumber.getText()+"')");
+		    	if(record>0) JOptionPane.showMessageDialog(null, "Success");
+		    	table.revalidate();
+			}
+		});
+		panelButton.add(btnInsert);
 		
-		JButton btnNewButton_2 = new JButton("New button");
-		panelButton.add(btnNewButton_2);
+		JButton btnUpdate = new JButton("Update");
+		panelButton.add(btnUpdate);
 		
-		JButton btnNewButton = new JButton("New button");
-		panelButton.add(btnNewButton);
+		JButton btnDelete = new JButton("Delete");
+		panelButton.add(btnDelete);
 		
-		JButton btnNewButton_1 = new JButton("New button");
-		panelButton.add(btnNewButton_1);
+		JButton btnRefresh = new JButton("Refresh");
+		panelButton.add(btnRefresh);
+		
+		JPanel panelFunction = new JPanel();
+		mainPanel.add(panelFunction);
+		
+		JButton btnSearch = new JButton("Search");
+		panelFunction.add(btnSearch);
+		
+		JButton btnArrange = new JButton("Arrange");
+		panelFunction.add(btnArrange);
+		
+		JButton btnNewButton_5 = new JButton("New button");
+		panelFunction.add(btnNewButton_5);
+		
+		JButton btnSignOut = new JButton("Sign Out");
+		panelFunction.add(btnSignOut);
+		btnSignOut.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JOptionPane.showMessageDialog(null, "Sign out successfully");
+				frame.dispose();
+				LoginGUI log = new LoginGUI();
+			}
+		});
 		
 		JPanel panelTable = new JPanel();
 		frame.getContentPane().add(panelTable);
 		panelTable.setLayout(new GridLayout(0, 1, 0, 0));
 		
-		JTable table = new JTable();
-		table.setModel(new DefaultTableModel(
-			new Object[][] {
-				{1, 1, 1, 1, 1, 1, 1},
-				{1, 1, 1, 1, 1, 1, 1},
-			},
-			new String[] {
-				"Owner Name", "New column", "New column", "New column", "New column", "New column", "New column"
-			}
-		));
+		this.table = new JTable(vData, vTitle);
+		JScrollPane tableResult = new JScrollPane(this.table);
+		panelTable.add(tableResult);
 		
-		JScrollPane scrollPane = new JScrollPane();
-		panelTable.add(scrollPane);
-		scrollPane.add(table);
-		
-		
-		JPanel panelFunction = new JPanel();
-		frame.getContentPane().add(panelFunction);
-		
-		JButton btnNewButton_7 = new JButton("New button");
-		panelFunction.add(btnNewButton_7);
-		
-		JButton btnNewButton_6 = new JButton("New button");
-		panelFunction.add(btnNewButton_6);
-		
-		JButton btnNewButton_5 = new JButton("New button");
-		panelFunction.add(btnNewButton_5);
-		
-		JButton btnNewButton_4 = new JButton("New button");
-		panelFunction.add(btnNewButton_4);
 		
 		frame.pack();
-		frame.setLocation(200,30);
-		frame.setSize(800,700);
+		frame.setLocation(100,30);
+		frame.setSize(1200,600);
 		frame.setVisible(true);
 	}
 	public static void main(String[] args) {
