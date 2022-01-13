@@ -55,9 +55,15 @@ public class LoginGUI {
 					ConnectDB connect = new ConnectDB();
 					ResultSet rs = connect.SelectDB("Select * from Account where role='"+Role.getSelectedItem().toString()+"'and username='"+tfUsername.getText()+"' and password='"+passwordField.getText()+"'");
 					if(rs.next()) {
-						JOptionPane.showMessageDialog( null, "Sign in successfully");
+						JOptionPane.showMessageDialog(null, "Sign in successfully");
 						frame.dispose();
-					}
+						if(Role.getSelectedItem().toString()=="Admin") {
+							VehicleGUIad vAd = new VehicleGUIad();
+						}
+						else {
+							VehicleGUIus vUs = new VehicleGUIus();
+						}
+					}	
 					else
 						JOptionPane.showMessageDialog(null, "Wrong password or username");
 				} catch (Exception e2) {
