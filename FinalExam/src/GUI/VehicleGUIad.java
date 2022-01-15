@@ -2,18 +2,26 @@ package GUI;
 
 import javax.swing.JFrame;
 import java.awt.GridLayout;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
-
+import Model.Vehicle;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import javax.swing.JTextField;
 import javax.swing.JComboBox;
+import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import java.awt.Dimension;
 import javax.swing.JButton;
@@ -26,6 +34,10 @@ import DB.ConnectDB;
 import java.awt.FlowLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+
+import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
+import javax.swing.border.TitledBorder;
 
 public class VehicleGUIad {
 	JFrame frame = new JFrame("Vehical management for Admin");
@@ -44,6 +56,8 @@ public class VehicleGUIad {
 		JPanel mainPanel = new JPanel();
 		mainPanel.setLayout(new GridLayout(8,1));
 		frame.getContentPane().add(mainPanel);
+		
+		
 		ConnectDB s = new ConnectDB();
 	    rs = s.SelectDB("Select * from Vehicle");
 		try {
@@ -69,6 +83,9 @@ public class VehicleGUIad {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		
+		
 		JPanel panelTitle = new JPanel();
 		mainPanel.add(panelTitle);
 		
@@ -153,11 +170,22 @@ public class VehicleGUIad {
 		
 		JButton btnInsert = new JButton("Insert");
 		btnInsert.addActionListener(new ActionListener() {
+			public boolean validateForm() {
+				if(tfLicensePlate.getText().isEmpty() || tfIdentityCard.getText().isEmpty()) {
+					return false;
+				}
+				return true;
+			}
 			public void actionPerformed(ActionEvent e) {
-				ConnectDB connectDB = new ConnectDB();
-				int record = connectDB.ExcuteUpdate("Insert into Vehicle values('"+tfOwnerName.getText()+"','"+tfIdentityCard.getText()+"','"+comboBox.getSelectedItem().toString()+"','"+tfLicensePlate.getText()+"','"+tfBrand.getText()+"','"+tfChassisNumber.getText()+"','"+tfEngineNumber.getText()+"')");
-		    	if(record>0) JOptionPane.showMessageDialog(null, "Success");
-		    	table.revalidate();
+				if(validateForm()) {
+					ConnectDB connectDB = new ConnectDB();
+					int record = connectDB.ExcuteUpdate("Insert into Vehicle values('"+tfOwnerName.getText()+"','"+tfIdentityCard.getText()+"','"+comboBox.getSelectedItem().toString()+"','"+tfLicensePlate.getText()+"','"+tfBrand.getText()+"','"+tfChassisNumber.getText()+"','"+tfEngineNumber.getText()+"')");
+			    	if(record>0) JOptionPane.showMessageDialog(null, "Success");
+				}
+				else {
+					JOptionPane.showMessageDialog(null, "Please fill in the required fields");
+				}
+		    	
 			}
 		});
 		panelButton.add(btnInsert);
@@ -169,6 +197,12 @@ public class VehicleGUIad {
 		panelButton.add(btnDelete);
 		
 		JButton btnRefresh = new JButton("Refresh");
+		btnRefresh.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				frame.dispose();
+				VehicleGUIad v = new VehicleGUIad();
+			}
+		});
 		panelButton.add(btnRefresh);
 		
 		JPanel panelFunction = new JPanel();
@@ -195,7 +229,10 @@ public class VehicleGUIad {
 		
 		JPanel panelTable = new JPanel();
 		frame.getContentPane().add(panelTable);
-		panelTable.setLayout(new GridLayout(0, 1, 0, 0));
+		panelTable.setLayout( new BorderLayout());
+		Border border = BorderFactory.createLineBorder(Color.BLACK);
+		TitledBorder titleBorder = BorderFactory.createTitledBorder(border, " View Table ");
+		panelTable.setBorder(titleBorder);
 		
 		this.table = new JTable(vData, vTitle);
 		JScrollPane tableResult = new JScrollPane(this.table);
@@ -207,7 +244,33 @@ public class VehicleGUIad {
 		frame.setSize(1200,600);
 		frame.setVisible(true);
 	}
+	
+	public List<Vehicle> getAllVehicle(){
+		List<Vehicle> list = new ArrayList<>();
+		ResultSet rs = null;
+		try {
+			String sql = "Select [Owner Name], [Identity Card], [Vehicle Type], [License Plate], [Brand], [Chassis Number], [Engine Number] From Vehicle";
+			ConnectDB c = new ConnectDB();
+			rs = c.SelectDB(sql);
+			while(rs.next()) {
+				Vehicle v = new Vehicle();
+				v.setOwnerName(rs.getString(1));
+				v.setIdentityCard(rs.getInt(2));
+				v.setType(rs.getString(3));
+				v.setLicensePlate(rs.getString(4));
+				v.setBrand(rs.getString(5));
+				v.setChassisNumber(rs.getString(6));
+				v.setEngineNumber(rs.getString(7));
+				list.add(v);
+			}
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		return list;
+	}
 	public static void main(String[] args) {
-		new VehicleGUIad();
+		VehicleGUIad v = new VehicleGUIad();
+		System.out.println(v.getAllVehicle());
 	}
 }
