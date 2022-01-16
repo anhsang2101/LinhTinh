@@ -2,10 +2,13 @@ package DB;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
 import javax.management.relation.Role;
+
+import Model.Vehicle;
 
 public class ConnectDB {
 	Connection conn;
@@ -48,4 +51,6 @@ public class ConnectDB {
 		}
 		return rs;
 	}
+	
+	
 }
