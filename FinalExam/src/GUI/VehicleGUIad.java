@@ -2,6 +2,7 @@ package GUI;
 
 import javax.swing.JFrame;
 import java.awt.GridLayout;
+import java.awt.HeadlessException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -23,6 +24,8 @@ import javax.swing.JTextField;
 import javax.swing.JComboBox;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.ImageIcon;
+
 import java.awt.Dimension;
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
@@ -49,17 +52,17 @@ public class VehicleGUIad {
 	private JTextField tfChassisNumber;
 	private JTextField tfEngineNumber;
 	private JTextField tfBrand;
+	private JTextField tfSearch;
 	JTable table;
 	ResultSet rs;
 	ResultSetMetaData rstmeta;
 	Vector vData=null, vTitle=null; 
+	
 	public VehicleGUIad() {
 		frame.getContentPane().setLayout(new GridLayout(2,1));
 		JPanel mainPanel = new JPanel();
 		mainPanel.setLayout(new GridLayout(8,1));
 		frame.getContentPane().add(mainPanel);
-		
-		fillTable();
 		
 		
 		JPanel panelTitle = new JPanel();
@@ -161,7 +164,7 @@ public class VehicleGUIad {
 			}
 		});
 		panelButton.add(btnInsert);
-		
+
 		JButton btnUpdate = new JButton("Update");
 		btnUpdate.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -205,9 +208,20 @@ public class VehicleGUIad {
 		
 		JButton btnRefresh = new JButton("Refresh");
 		btnRefresh.addActionListener(new ActionListener() {
+			
+			public void newTextField() {
+				tfOwnerName.setText("");
+				tfIdentityCard.setText(String.valueOf(""));
+				comboBox.setSelectedIndex(0);
+				tfLicensePlate.setText("");
+				tfBrand.setText("");
+				tfChassisNumber.setText("");
+				tfEngineNumber.setText("");
+			}
+			
 			public void actionPerformed(ActionEvent e) {
-				frame.dispose();
-				VehicleGUIad v = new VehicleGUIad();
+				newTextField();
+				fillDataTable();
 			}
 		});
 		panelButton.add(btnRefresh);
@@ -216,13 +230,51 @@ public class VehicleGUIad {
 		mainPanel.add(panelFunction);
 		
 		JButton btnSearch = new JButton("Search");
+		btnSearch.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				DefaultTableModel Model = (DefaultTableModel) table.getModel();
+				
+				ResultSet rs = null;
+				String sql = "Select [Owner Name], [Identity Card], [Vehicle Type], [License Plate], [Brand], [Chassis Number], [Engine Number] From Vehicle where [Owner Name] like '%"+tfSearch.getText()+"%'";
+				ConnectDB c = new ConnectDB();
+				rs = c.SelectDB(sql);
+				try {
+					if(rs.next()==false) {
+						JOptionPane.showMessageDialog(null, "Not found");
+					}
+					else {
+						Model.setRowCount(0);
+						for (Vehicle v : getVehicleByOwnerName(tfSearch.getText())){
+							Object dataRow[] = new Object[7];
+							dataRow[0] = v.getOwnerName();
+							dataRow[1] = v.getIdentityCard();
+							dataRow[2] = v.getType();
+							dataRow[3] = v.getLicensePlate();
+							dataRow[4] = v.getBrand();
+							dataRow[5] = v.getChassisNumber();
+							dataRow[6] = v.getEngineNumber();
+							Model.addRow(dataRow);
+						}
+					}
+				} catch (HeadlessException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (SQLException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
+
+		
+		JLabel lbSearch = new JLabel("Search");
+		panelFunction.add(lbSearch);
+		
+		tfSearch = new JTextField();
+		panelFunction.add(tfSearch);
+		tfSearch.setColumns(20);
+		
 		panelFunction.add(btnSearch);
-		
-		JButton btnArrange = new JButton("Arrange");
-		panelFunction.add(btnArrange);
-		
-		JButton btnNewButton_5 = new JButton("New button");
-		panelFunction.add(btnNewButton_5);
 		
 		JButton btnSignOut = new JButton("Sign Out");
 		panelFunction.add(btnSignOut);
@@ -241,6 +293,32 @@ public class VehicleGUIad {
 		TitledBorder titleBorder = BorderFactory.createTitledBorder(border, " View Table ");
 		panelTable.setBorder(titleBorder);
 		
+		// Set Table Model 
+		ConnectDB s = new ConnectDB();
+	    rs = s.SelectDB("Select * from Vehicle");
+		try {
+			rstmeta = rs.getMetaData();
+			int num_column = rstmeta.getColumnCount();
+			
+			 vTitle = new Vector(num_column);
+			
+			 for (int i=1; i<=num_column;i++){
+			 vTitle.add(rstmeta.getColumnLabel(i));
+			 }
+			 
+			 vData = new Vector();
+			
+			 while (rs.next()){
+			 Vector row = new Vector(num_column);
+			 for (int i=1; i<=num_column;i++)				
+				 row.add(rs.getString(i));				
+				 vData.add(row);
+			 }
+			 this.table = new JTable(vData, vTitle);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		table.addMouseListener(new MouseAdapter() {
 			
@@ -264,8 +342,27 @@ public class VehicleGUIad {
 				
 			}
 		});
+				
 		JScrollPane tableResult = new JScrollPane(this.table);
 		panelTable.add(tableResult);
+		
+		// Add Icon
+		
+		ImageIcon insertIcon = new ImageIcon("InsertIcon.png");
+		btnInsert.setIcon(insertIcon);
+		ImageIcon updateIcon = new ImageIcon("UpdateIcon.png");
+		btnUpdate.setIcon(updateIcon);
+		ImageIcon deleteIcon = new ImageIcon("DeleteIcon.png");
+		btnDelete.setIcon(deleteIcon);
+		ImageIcon refreshIcon = new ImageIcon("RefreshIcon.png");
+		btnRefresh.setIcon(refreshIcon);
+		ImageIcon searchIcon = new ImageIcon("SearchIcon.png");
+		btnSearch.setIcon(searchIcon);
+		ImageIcon signOutIcon = new ImageIcon("SignOutIcon.png");
+		btnSignOut.setIcon(signOutIcon);
+		
+		
+		
 		
 		frame.pack();
 		frame.setLocation(100,30);
@@ -297,32 +394,38 @@ public class VehicleGUIad {
 		}
 	}
 	
-	public void fillTable() {
-		ConnectDB s = new ConnectDB();
-	    rs = s.SelectDB("Select * from Vehicle");
+	public List<Vehicle> getVehicleByOwnerName(String name){
+		List<Vehicle> list = new ArrayList<>();
+		ResultSet rs = null;
 		try {
-			rstmeta = rs.getMetaData();
-			int num_column = rstmeta.getColumnCount();
+			String sql = "Select [Owner Name], [Identity Card], [Vehicle Type], [License Plate], [Brand], [Chassis Number], [Engine Number] From Vehicle where [Owner Name] like '%"+name+"%'";
+			ConnectDB c = new ConnectDB();
+			rs = c.SelectDB(sql);
+			while(rs.next()) {
+				Vehicle v = new Vehicle();
+				v.setOwnerName(rs.getString(1));
+				v.setIdentityCard(rs.getInt(2));
+				v.setType(rs.getString(3));
+				v.setLicensePlate(rs.getString(4));
+				v.setBrand(rs.getString(5));
+				v.setChassisNumber(rs.getString(6));
+				v.setEngineNumber(rs.getString(7));
+				list.add(v);
+				
+			}
 			
-			 vTitle = new Vector(num_column);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}finally {
+			try {
+				rs.close();
+				//SQL_D.getCon().close();
+			} catch (Exception e2) {
+				// TODO: handle exception
+			}
 			
-			 for (int i=1; i<=num_column;i++){
-			 vTitle.add(rstmeta.getColumnLabel(i));
-			 }
-			 
-			 vData = new Vector();
-			
-			 while (rs.next()){
-			 Vector row = new Vector(num_column);
-			 for (int i=1; i<=num_column;i++)				
-				 row.add(rs.getString(i));				
-				 vData.add(row);
-			 }
-			 this.table = new JTable(vData, vTitle);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
+		return list;
 	}
 	
 	public Vehicle getVehicleByLp(String lp) {

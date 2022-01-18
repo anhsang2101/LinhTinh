@@ -75,6 +75,8 @@ public class LoginGUI {
 		
 		
 		
+		
+		
 		frame.pack();
 		frame.setLocation(400,200);
 		frame.setSize(500,150);

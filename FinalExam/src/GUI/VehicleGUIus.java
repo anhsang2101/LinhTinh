@@ -12,12 +12,18 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.Vector;
 import javax.swing.JPanel;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import java.awt.FlowLayout;
 import java.awt.BorderLayout;
+import java.awt.Color;
+
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
+import javax.swing.border.Border;
+import javax.swing.border.TitledBorder;
+
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
@@ -81,10 +87,16 @@ public class VehicleGUIus {
 	    });
 	    panel.add(btnSignOut);
 	    
+	    JPanel panelTable = new JPanel();
 	    table = new JTable(vData,vTitle);
 	    JScrollPane tableResult = new JScrollPane(table);
+	    panelTable.setLayout( new BorderLayout());
+		Border border = BorderFactory.createLineBorder(Color.BLACK);
+		TitledBorder titleBorder = BorderFactory.createTitledBorder(border, " View Table ");
+		panelTable.setBorder(titleBorder);
+		panelTable.add(tableResult);
 		
-	    frame.getContentPane().add(tableResult);
+	    frame.getContentPane().add(panelTable);
 		frame.pack();
 		frame.setLocation(200,30);
 		frame.setSize(800,400);
